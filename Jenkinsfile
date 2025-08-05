@@ -24,17 +24,19 @@ pipeline {
 
     stage('Load Azure Credentials') {
       steps {
-        withCredentials([string(credentialsId: 'AZURE_CREDENTIALS_JSON', variable: 'AZURE_CREDENTIALS')]) {
-          writeFile file: 'azure_creds.json', text: AZURE_CREDENTIALS
-          script {
-            def creds = readJSON file: 'azure_creds.json'
-            env.ARM_CLIENT_ID       = creds.clientId
-            env.ARM_CLIENT_SECRET   = creds.clientSecret
-            env.ARM_SUBSCRIPTION_ID = creds.subscriptionId
-            env.ARM_TENANT_ID       = creds.tenantId
-          }
-        }
+        withCredentials([file(credentialsId: 'AZURE_CREDENTIALS', variable: 'AZURE_CREDENTIALS_FILE')]) {
+    script {
+        def azureCreds = readJSON file: AZURE_CREDENTIALS_FILE
+
+        withEnv([
+            "ARM_CLIENT_ID=${azureCreds.clientId}",
+            "ARM_CLIENT_SECRET=${azureCreds.clientSecret}",
+            "ARM_SUBSCRIPTION_ID=${azureCreds.subscriptionId}",
+            "ARM_TENANT_ID=${azureCreds.tenantId}"
+        ])
+       }
       }
+     }
     }
 
     stage('Terraform Init') {
