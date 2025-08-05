@@ -8,10 +8,17 @@ pipeline {
     ARM_TENANT_ID       = ''
   }
 
-  stages {
+  /*stages {
     stage('Checkout Code') {
       steps {
         git url: 'https://github.com/Mahender2485/azure-vmss-deploy.git', branch: 'main'
+      }
+    } */
+
+    stages {
+    stage('Checkout Code') {
+      steps {
+        checkout scm
       }
     }
 
