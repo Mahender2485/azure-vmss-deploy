@@ -22,44 +22,28 @@ pipeline {
       }
     }
 
-    stage('Load Azure Credentials and Terraform Plan') {
-  steps {
-    withCredentials([string(credentialsId: 'AZURE_CREDENTIALS', variable: 'AZURE_CREDENTIALS_JSON')]) {
-      script {
-        def azureCreds = readJSON text: AZURE_CREDENTIALS_JSON
-
-        withEnv([
-          "ARM_CLIENT_ID=${azureCreds.clientId}",
-          "ARM_CLIENT_SECRET=${azureCreds.clientSecret}",
-          "ARM_SUBSCRIPTION_ID=${azureCreds.subscriptionId}",
-          "ARM_TENANT_ID=${azureCreds.tenantId}"
-        ]) 
-      }
-    }
-  }
-}
-
-
-    stage('Terraform Init') {
+    stage('Load Azure Credentials and Run Terraform') {
       steps {
-        sh 'terraform init'
+        withCredentials([string(credentialsId: 'AZURE_CREDENTIALS', variable: 'AZURE_CREDENTIALS_JSON')]) {
+          script {
+            def azureCreds = readJSON text: AZURE_CREDENTIALS_JSON
+
+            withEnv([
+              "ARM_CLIENT_ID=${azureCreds.clientId}",
+              "ARM_CLIENT_SECRET=${azureCreds.clientSecret}",
+              "ARM_SUBSCRIPTION_ID=${azureCreds.subscriptionId}",
+              "ARM_TENANT_ID=${azureCreds.tenantId}"
+            ]) {
+              // ✅ All terraform commands go inside here
+              sh 'terraform init'
+              sh 'terraform plan -out=tfplan'
+              sh 'terraform apply -auto-approve tfplan'
+            }
+          }
+        }
       }
     }
-
-    stage('Terraform Plan') {
-      steps {
-        sh 'terraform plan -out=tfplan'
-      }
-    }
-
-    stage('Terraform Apply') {
-      steps {
-        sh 'terraform apply -auto-approve tfplan'
-      }
-    }
-  }
-
-  post {
+    post {
     success {
       slackSend channel: '#jenkin-pipeline', message: "✅ *Build succeeded*: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
     }
