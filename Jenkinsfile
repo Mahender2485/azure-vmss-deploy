@@ -15,12 +15,13 @@ pipeline {
       }
     } */
 
-    stages {
-    stage('Checkout Code') {
-      steps {
+  stages {
+      stage('Checkout Code') {
+        steps {
         checkout scm
+        }
       }
-    }
+     
 
     stage('Load Azure Credentials and Run Terraform') {
       steps {
@@ -34,7 +35,6 @@ pipeline {
               "ARM_SUBSCRIPTION_ID=${azureCreds.subscriptionId}",
               "ARM_TENANT_ID=${azureCreds.tenantId}"
             ]) {
-              // ✅ All terraform commands go inside here
               sh 'terraform init'
               sh 'terraform plan -out=tfplan'
               sh 'terraform apply -auto-approve tfplan'
@@ -43,6 +43,8 @@ pipeline {
         }
       }
     }
+  }
+
     post {
     success {
       slackSend channel: '#jenkin-pipeline', message: "✅ *Build succeeded*: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
