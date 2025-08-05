@@ -24,18 +24,21 @@ pipeline {
 
     stage('Load Azure Credentials') {
       steps {
-        withCredentials([file(credentialsId: 'AZURE_CREDENTIALS', variable: 'AZURE_CREDENTIALS_FILE')]) {
-    script {
-        def azureCreds = readJSON file: AZURE_CREDENTIALS_FILE
+        withCredentials([string(credentialsId: 'AZURE_CREDENTIALS', variable: 'AZURE_CREDENTIALS_JSON')]) {
+          script {
+            def azureCreds = readJSON text: AZURE_CREDENTIALS_JSON
 
-        withEnv([
+            withEnv([
             "ARM_CLIENT_ID=${azureCreds.clientId}",
             "ARM_CLIENT_SECRET=${azureCreds.clientSecret}",
             "ARM_SUBSCRIPTION_ID=${azureCreds.subscriptionId}",
             "ARM_TENANT_ID=${azureCreds.tenantId}"
-        ])
-       }
-      }
+            ])
+          }
+        }
+    }
+}
+
      }
     }
 
