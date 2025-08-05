@@ -22,25 +22,23 @@ pipeline {
       }
     }
 
-    stage('Load Azure Credentials') {
-      steps {
-        withCredentials([string(credentialsId: 'AZURE_CREDENTIALS', variable: 'AZURE_CREDENTIALS_JSON')]) {
-          script {
-            def azureCreds = readJSON text: AZURE_CREDENTIALS_JSON
+    stage('Load Azure Credentials and Terraform Plan') {
+  steps {
+    withCredentials([string(credentialsId: 'AZURE_CREDENTIALS', variable: 'AZURE_CREDENTIALS_JSON')]) {
+      script {
+        def azureCreds = readJSON text: AZURE_CREDENTIALS_JSON
 
-            withEnv([
-            "ARM_CLIENT_ID=${azureCreds.clientId}",
-            "ARM_CLIENT_SECRET=${azureCreds.clientSecret}",
-            "ARM_SUBSCRIPTION_ID=${azureCreds.subscriptionId}",
-            "ARM_TENANT_ID=${azureCreds.tenantId}"
-            ])
-          }
-        }
+        withEnv([
+          "ARM_CLIENT_ID=${azureCreds.clientId}",
+          "ARM_CLIENT_SECRET=${azureCreds.clientSecret}",
+          "ARM_SUBSCRIPTION_ID=${azureCreds.subscriptionId}",
+          "ARM_TENANT_ID=${azureCreds.tenantId}"
+        ]) 
+      }
     }
+  }
 }
 
-     }
-    }
 
     stage('Terraform Init') {
       steps {
